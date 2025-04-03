@@ -17,31 +17,33 @@ def query_chroma(query_params):
         return None
 
 
-# Initialize session states:
-if "question" not in st.session_state:
-    st.session_state["question"] = ""
-if "alternatives" not in st.session_state:
-    st.session_state["alternatives"] = ""
-if "alt_exp" not in st.session_state:
-    st.session_state["alt_exp"] = ""
-if "explanation" not in st.session_state:
-    st.session_state["explanation"] = ""
-if "learning_objective" not in st.session_state:
-    st.session_state["learning_objective"] = ""
-if "edit_question" not in st.session_state:
-    st.session_state["edit_question"] = False
-
-
 # Function to generate a question using the Flask API
 def generate_question(prompt):
     response = requests.post(
         "http://127.0.0.1:5000/generate-question", json={"prompt": prompt}
     )
     if response.status_code == 200:
-        return response.json()
+        response = response.json()
+        print(response)
+        return response
     else:
         st.error("Error ao gerar a questão.")
         return None
+
+
+# Initialize session states:
+if "question" not in st.session_state:
+    st.session_state["question"] = ""
+if "alternatives" not in st.session_state:
+    st.session_state["alternatives"] = "[]"
+if "alt_exp" not in st.session_state:
+    st.session_state["alt_exp"] = "[]"
+if "explanation" not in st.session_state:
+    st.session_state["explanation"] = ""
+if "learning_objective" not in st.session_state:
+    st.session_state["learning_objective"] = ""
+if "edit_question" not in st.session_state:
+    st.session_state["edit_question"] = False
 
 
 # Title of the app
@@ -81,10 +83,10 @@ if "question" in st.session_state and not st.session_state["edit_question"]:
     st.subheader("Questão Gerada:")
     st.write("**Enunciado:** " + st.session_state["question"])
     st.write("**Alternativas:** ")
-    for i, alt in enumerate(ast.literal_eval(str(st.session_state["alternatives"]))):
+    for i, alt in enumerate(st.session_state["alternatives"]):
         st.write(alt)
     st.write("**Explicação das Alternativas** ")
-    for i, alt in enumerate(ast.literal_eval(str(st.session_state["alt_exp"]))):
+    for i, alt in enumerate(st.session_state["alt_exp"]):
         st.write(alt)
     st.write("**Explicação:** " + st.session_state["explanation"])
     st.write("**Objetivo Educacional:** " + st.session_state["learning_objective"])

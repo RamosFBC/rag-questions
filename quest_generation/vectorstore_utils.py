@@ -1,11 +1,12 @@
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_pinecone import PineconeVectorStore
 from langchain.tools.retriever import create_retriever_tool
-import chromadb
+from pinecone import Pinecone
 import os
+from uuid import uuid4
 
 
-def create_vectorstore(docs_split, persist=True, persist_directory="../chroma_db"):
+def create_vectorstore(docs_split, index_name="medical-documents"):
     """
     Create or load a persistent Chroma vector store.
 
@@ -17,37 +18,35 @@ def create_vectorstore(docs_split, persist=True, persist_directory="../chroma_db
     Returns:
         Chroma: The loaded or newly created vector store.
     """
-    # Define the embedding function (adjust based on your setup)
-    embedding_function = (
-        OpenAIEmbeddings()
-    )  # Replace with your embedding model if different
+    pinecone_api_key = os.getenv("PINECONE_API_KEY")
+    pinecone_env = os.getenv("PINECONE_ENV")
+    pc = Pinecone(api_key=pinecone_api_key, environment=pinecone_env)
 
-    # Check if the persistent directory exists and has a Chroma store
-    if persist and os.path.exists(persist_directory):
-        print(f"Loading existing vector store from {persist_directory}")
-        # Load the existing vector store
-        vectorstore = Chroma(
-            persist_directory=persist_directory, embedding_function=embedding_function
+    # Verify the index exists
+    if index_name not in pc.list_indexes().names():
+        raise ValueError(
+            f"Index '{index_name}' does not exist. Please create it in Pinecone "
+            "with dimension=1536 and metric='cosine' before running this code."
         )
-        print("Using existing vector store.")
-        # Optionally, verify it has data
-        if vectorstore._collection.count() > 0:
-            return vectorstore
-        else:
-            print(f"Vector store at {persist_directory} is empty. Populating it now.")
 
-    # If no vector store exists or it's empty, create a new one
-    print(f"Creating new vector store at {persist_directory}")
-    vectorstore = Chroma.from_documents(
-        documents=docs_split,
-        embedding=embedding_function,
-        persist_directory=persist_directory if persist else None,
-    )
+    index = pc.Index(index_name)
+    stats = index.describe_index_stats()
 
-    # Persist the vector store if specified
-    if persist:
-        vectorstore.persist()
-        print(f"Vector store saved to {persist_directory}")
+    default_namespace_vectors = stats["namespaces"].get("", {}).get("vector_count", 0)
+
+    # Define the embedding function
+    embedding_function = OpenAIEmbeddings(model="text-embedding-3-large")
+
+    uuids = [str(uuid4()) for _ in range(len(docs_split))]
+    if default_namespace_vectors == 0:
+        print(f"Populating Pinecone index '{index_name}' with documents.")
+        vectorstore = PineconeVectorStore(index=index, embedding=embedding_function)
+        vectorstore.add_documents(documents=docs_split, ids=uuids)
+    else:
+        print(f"Loading existing Pinecone index '{index_name}'.")
+        vectorstore = PineconeVectorStore.from_existing_index(
+            index_name=index_name, embedding=embedding_function
+        )
 
     return vectorstore
 

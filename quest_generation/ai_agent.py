@@ -45,10 +45,8 @@ class ToolConfig:
         docs_split = split_text(
             docs_list, chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap
         )
-        # Create vectorstore
-        vectorstore = create_vectorstore(
-            docs_split, persist=True, persist_directory="../chroma_db"
-        )
+        # Create vectorstore with Pinecone
+        vectorstore = create_vectorstore(docs_split, index_name="medical-documents")
         # Create retriever and tool
         retriever = create_vectorstore_retriever(vectorstore)
         retriever_prompt = "retrieve_medical_references. Search and return information necessary to make evidence-based questions. Always use this tool before generating questions."
@@ -294,11 +292,11 @@ Garanta que a questão seja clara, concisa e eficaz para testar o entendimento d
         "role": "assistant",
         "content": json.dumps(
             {
-                "question": f"{response['enunciate']}",
-                "alternatives": f"{response['alternatives']}",
-                "alt_explanations": f"{response['alt_explanations']}",
-                "question_explanation": f"{response['question_explanation']}",
-                "learning_objective": f"{response['learning_objective']}",
+                "question": response["enunciate"],
+                "alternatives": response["alternatives"],
+                "alt_explanations": response["alt_explanations"],
+                "question_explanation": response["question_explanation"],
+                "learning_objective": response["learning_objective"],
             },
             ensure_ascii=False,
         ),
