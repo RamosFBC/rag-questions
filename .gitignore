@@ -7,6 +7,23 @@ venv
 
 quest_generation/__pycache__/
 
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/ 
+*.eggs/
+*.whl
+*.egg
+*.mypy_cache/
+*.pytest_cache/
+*.coverage
+*.cover
+*.hypothesis/
+*.tox/  
+*.coverage.*
 # Logs
 logs
 *.log

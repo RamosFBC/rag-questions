@@ -36,9 +36,9 @@ def create_vectorstore(docs_split, index_name="medical-documents"):
 
     # Define the embedding function
     embedding_function = OpenAIEmbeddings(model="text-embedding-3-large")
-
-    uuids = [str(uuid4()) for _ in range(len(docs_split))]
-    if default_namespace_vectors == 0:
+    if docs_split:
+        uuids = [str(uuid4()) for _ in range(len(docs_split))]
+    if default_namespace_vectors == 0 and docs_split:
         print(f"Populating Pinecone index '{index_name}' with documents.")
         vectorstore = PineconeVectorStore(index=index, embedding=embedding_function)
         vectorstore.add_documents(documents=docs_split, ids=uuids)

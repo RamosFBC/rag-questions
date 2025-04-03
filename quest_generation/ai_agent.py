@@ -28,7 +28,7 @@ class ToolConfig:
     """Class to manage and initialize tools for the workflow."""
 
     def __init__(
-        self, document_path: str, chunk_size: int = 1000, chunk_overlap: int = 200
+        self, document_path: str = "", chunk_size: int = 1000, chunk_overlap: int = 200
     ):
         """Initialize tools with configurable parameters."""
         self.document_path = document_path

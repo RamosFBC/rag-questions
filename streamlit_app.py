@@ -1,11 +1,16 @@
 import streamlit as st
+from langchain_core.messages import HumanMessage
+from quest_generation.ai_agent import create_graph, ToolConfig
 import requests
 import ast
+import json
 import dotenv
 import os
 
 dotenv.load_dotenv()
 CORRECT_PASSWORD = os.getenv("APP_PASSWORD")
+
+tool_config = ToolConfig()
 
 
 def check_password():
@@ -32,37 +37,28 @@ def check_password():
     return True
 
 
-# Function to call the Flask API
-def query_chroma(query_params):
-    response = requests.post("http://127.0.0.1:5000/query", json=query_params)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error("Error communicating with the API")
-        return None
-
-
 # Function to generate a question using the Flask API
 def generate_question(prompt):
-    response = requests.post(
-        "http://127.0.0.1:5000/generate-question", json={"prompt": prompt}
-    )
-    if response.status_code == 200:
-        response = response.json()
-        print(response)
-        return response
-    else:
-        st.error("Error ao gerar a questão.")
-        return None
+    graph = create_graph(tool_config)
+    initial_state = {
+        "messages": [HumanMessage(content=prompt)],
+        "clinical_scenario": "",
+        "tools": tool_config.get_tools(),  # Pass tools into the initial state
+    }
+    output = graph.invoke(initial_state)
+
+    response = json.loads(output["messages"][-1].content)
+
+    return response
 
 
 # Initialize session states:
 if "question" not in st.session_state:
     st.session_state["question"] = ""
 if "alternatives" not in st.session_state:
-    st.session_state["alternatives"] = "[]"
+    st.session_state["alternatives"] = []
 if "alt_exp" not in st.session_state:
-    st.session_state["alt_exp"] = "[]"
+    st.session_state["alt_exp"] = []
 if "explanation" not in st.session_state:
     st.session_state["explanation"] = ""
 if "learning_objective" not in st.session_state:
@@ -88,15 +84,11 @@ if check_password():
             response = generate_question(user_prompt)
             if response:
                 # Access the JSON structure using keys
-                st.session_state["question"] = response["results"]["question"]
-                st.session_state["alternatives"] = response["results"]["alternatives"]
-                st.session_state["alt_exp"] = response["results"]["alt_explanations"]
-                st.session_state["explanation"] = response["results"][
-                    "question_explanation"
-                ]
-                st.session_state["learning_objective"] = response["results"][
-                    "learning_objective"
-                ]
+                st.session_state["question"] = response["question"]
+                st.session_state["alternatives"] = response["alternatives"]
+                st.session_state["alt_exp"] = response["alt_explanations"]
+                st.session_state["explanation"] = response["question_explanation"]
+                st.session_state["learning_objective"] = response["learning_objective"]
 
             else:
                 st.error("Falha ao gerar a questão.")
