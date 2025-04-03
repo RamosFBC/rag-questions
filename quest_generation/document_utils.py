@@ -1,5 +1,6 @@
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.schema import Document
 
 
 def load_documents(paths):
@@ -24,9 +25,6 @@ def split_text(docs_list, chunk_size=1000, chunk_overlap=200):
     print("Documents split successfully!")
 
     return docs_split
-
-
-from langchain.schema import Document
 
 
 def add_new_document(docs_split, vectorstore):

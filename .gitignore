@@ -3,6 +3,10 @@
 .env.local
 .env.*.local
 
+venv
+
+quest_generation/__pycache__/
+
 # Logs
 logs
 *.log

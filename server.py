@@ -1,12 +1,9 @@
 from flask import Flask, request, jsonify
-import chromadb
 from quest_generation.ai_agent import create_graph, ToolConfig
 from langchain_core.messages import HumanMessage
 import json
 
 app = Flask(__name__)
-
-client = chromadb.Client()
 
 paths = "/Users/feliperamos/Documents/eme2/true-minimalvp/docs/ehae178.pdf"
 
