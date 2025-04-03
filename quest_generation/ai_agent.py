@@ -12,7 +12,6 @@ from langgraph.prebuilt import tools_condition, ToolNode
 from langgraph.graph import END, StateGraph, START
 from langgraph.graph.message import add_messages
 
-from .env_utils import load_env
 from .document_utils import load_documents, split_text
 from .vectorstore_utils import (
     create_vectorstore_retriever,
@@ -22,6 +21,7 @@ from .vectorstore_utils import (
 
 import json
 import os
+import dotenv
 
 
 class ToolConfig:
@@ -39,7 +39,7 @@ class ToolConfig:
     def _initialize_tools(self) -> List[BaseTool]:
         """Private method to initialize the retriever tool."""
         # Load environment variables
-        load_env()
+        dotenv.load_dotenv()
         # Load and split documents
         docs_list = load_documents(self.document_path)
         docs_split = split_text(
