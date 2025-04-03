@@ -6,6 +6,7 @@
 venv
 
 quest_generation/__pycache__/
+tests/__pycache__/
 
 # Python cache
 __pycache__/
